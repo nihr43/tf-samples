@@ -4,7 +4,7 @@ locals {
 
 resource "incus_instance" "instance" {
   for_each = local.hosts
-  name     = each.value
+  name     = "alpine-${each.value}"
   image    = "images:alpine/3.21"
 
   config = {
