@@ -17,6 +17,10 @@ resource "incus_instance" "instance" {
   }
 
   provisioner "local-exec" {
-    command = "incus exec ${self.name} -- apk add nginx && incus exec ${self.name} -- rc-service nginx start"
+    command = <<EOF
+incus exec ${self.name} -- apk add nginx
+incus exec ${self.name} -- rc-update add nginx
+incus exec ${self.name} -- rc-service nginx start
+EOF
   }
 }
