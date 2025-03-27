@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -10,6 +11,24 @@ import (
 	"github.com/hashicorp/hc-install/releases"
 	"github.com/hashicorp/terraform-exec/tfexec"
 )
+
+type TerraformState struct {
+	Version          int                    `json:"version"`
+	TerraformVersion string                 `json:"terraform_version"`
+	Resources        []Resource             `json:"resources"`
+	Outputs          map[string]OutputValue `json:"outputs"`
+}
+
+type Resource struct {
+	Type      string                   `json:"type"`
+	Name      string                   `json:"name"`
+	Instances []map[string]interface{} `json:"instances"`
+}
+
+type OutputValue struct {
+	Value interface{} `json:"value"`
+	Type  string      `json:"type"`
+}
 
 func main() {
 	installer := &releases.ExactVersion{
@@ -33,17 +52,28 @@ func main() {
 		log.Fatalf("error running Init: %s", err)
 	}
 
-	state, err := tf.Show(context.Background())
-	if err != nil {
-		log.Fatalf("error running Show: %s", err)
-	}
-
-	fmt.Println(state.FormatVersion) // "0.1"
-
 	fmt.Println("Applying Terraform changes...")
 	err = tf.Apply(context.Background())
 	if err != nil {
 		log.Fatalf("error running Apply: %s", err)
 	}
-	fmt.Println("Terraform apply completed successfully")
+	fmt.Println("Terraform apply complete")
+
+	stateJSON, err := tf.StatePull(context.Background())
+	if err != nil {
+		log.Fatalf("error pulling state: %s", err)
+	}
+
+	var state TerraformState
+	err = json.Unmarshal([]byte(stateJSON), &state)
+	if err != nil {
+		log.Fatalf("error unmarshaling state JSON: %s", err)
+	}
+
+	for _, resource := range state.Resources {
+		for _, instance := range resource.Instances {
+			attributes := instance["attributes"].(map[string]interface{})
+			fmt.Println("instance", attributes["name"], "has ip", attributes["ipv4_address"])
+		}
+	}
 }
