@@ -12,6 +12,10 @@ resource "incus_instance" "instance" {
     "limits.cpu"     = 2
   }
 
+  wait_for {
+    type = "ipv4"
+  }
+
   provisioner "local-exec" {
     command = "incus exec ${self.name} -- apk add nginx && incus exec ${self.name} -- rc-service nginx start"
   }
