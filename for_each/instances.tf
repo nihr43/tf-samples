@@ -11,4 +11,8 @@ resource "incus_instance" "instance" {
     "boot.autostart" = true
     "limits.cpu"     = 2
   }
+
+  provisioner "local-exec" {
+    command = "incus exec ${self.name} -- apk add nginx && incus exec ${self.name} -- rc-service nginx start"
+  }
 }

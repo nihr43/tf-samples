@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
+	"time"
 
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/hc-install/product"
@@ -28,6 +30,23 @@ type Resource struct {
 type OutputValue struct {
 	Value interface{} `json:"value"`
 	Type  string      `json:"type"`
+}
+
+func testNginx(ip string) {
+	// tests if nginx provisioner actually started something on 80
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	url := fmt.Sprintf("http://%s:80", ip)
+
+	resp, err := client.Get(url)
+	if err != nil {
+		log.Fatalf("connection error: %v", err)
+	} else {
+		fmt.Println(ip, "responds")
+	}
+
+	defer resp.Body.Close()
 }
 
 func main() {
@@ -74,6 +93,7 @@ func main() {
 		for _, instance := range resource.Instances {
 			attributes := instance["attributes"].(map[string]interface{})
 			fmt.Println("instance", attributes["name"], "has ip", attributes["ipv4_address"])
+			testNginx(attributes["ipv4_address"].(string))
 		}
 	}
 }
