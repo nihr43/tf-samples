@@ -1,11 +1,7 @@
-locals {
-  hosts = toset(split("\n", trimspace(file("hosts.txt"))))
-}
-
 resource "incus_instance" "instance" {
-  for_each = local.hosts
-  name     = "alpine-${each.value}"
-  image    = "images:alpine/3.21"
+  for_each = local.instances
+  name     = "alpine-${each.value.hostname}"
+  image    = each.value.image
 
   config = {
     "boot.autostart" = true

@@ -60,7 +60,7 @@ func main() {
 		log.Fatalf("error installing Terraform: %s", err)
 	}
 
-	workingDir := "for_each/"
+	workingDir := "tf/"
 	tf, err := tfexec.NewTerraform(workingDir, execPath)
 	if err != nil {
 		log.Fatalf("error running NewTerraform: %s", err)
