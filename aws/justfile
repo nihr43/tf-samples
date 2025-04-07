@@ -1,0 +1,3 @@
+run:
+  terraform fmt
+  terraform apply
